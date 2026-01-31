@@ -6,12 +6,15 @@ import { UsersModule } from '../users/users.module'; // Importamos UsersModule
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtStrategy } from './stategies/jwt,stategy';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [
     ConfigModule,
     TypeOrmModule, // A veces necesario si usas entidades directo, pero mejor usar el UsersModule
     UsersModule, // ¡Importante! Para poder usar UsersService dentro de AuthService
+    TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
 
     // Configuración asíncrona del JWT (para leer variables de entorno)
@@ -29,7 +32,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [TypeOrmModule, JwtModule, PassportModule, AuthService], // Exportamos lo que otros módulos necesiten
+  providers: [AuthService, JwtStrategy],
+  exports: [TypeOrmModule, JwtStrategy, JwtModule, PassportModule, AuthService], // Exportamos lo que otros módulos necesiten
 })
 export class AuthModule { }
