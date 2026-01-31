@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt';
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Order } from 'src/orders/entities/order.entity';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('users')
 export class User {
@@ -20,6 +21,9 @@ export class User {
 
     @Column('text', { array: true, default: ['user'] })
     roles: string[];
+
+    @OneToMany(() => Order, (order) => order.user)
+    orders: Order[];
 
     @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;
