@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -46,8 +46,29 @@ export class UsersService {
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto, adminUser?: User) {
+    // 1. Preparamos el objeto con los nuevos datos
+    const user = await this.userRepository.preload({
+      id,
+      ...updateUserDto,
+    });
+
+    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+
+    try {
+      // 2. Si se está cambiando la contraseña, el Hook @BeforeUpdate de la entidad se encargará de hashearla
+      //    al hacer el .save(), siempre y cuando la entidad esté configurada correctamente.
+
+      // 3. Guardamos
+      await this.userRepository.save(user);
+
+      // 4. Limpiamos password antes de devolver
+      delete user.password;
+      return user;
+
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
   remove(id: number) {

@@ -23,6 +23,11 @@ export class AuthService {
             throw new UnauthorizedException('Credentials are not valid (email)');
         }
 
+        if (!user.isActive) {
+            throw new UnauthorizedException('User is inactive, talk with an admin');
+        }
+
+
         // 4. Verificar password
         // user.password podría ser undefined según TS, pero sabemos que la DB lo trajo.
         if (!bcrypt.compareSync(password, user.password!)) {
