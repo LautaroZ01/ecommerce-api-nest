@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class ProductsService {
@@ -25,20 +26,48 @@ export class ProductsService {
     }
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto; // Valores por defecto
+
+    return await this.productRepository.find({
+      take: limit,
+      skip: offset,
+      // relations: [], // Aquí pondremos las imágenes o categorías más adelante
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    const product = await this.productRepository.findOneBy({ id });
+
+    if (!product) {
+      throw new NotFoundException(`Product with id ${id} not found`);
+    }
+
+    return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    // 1. Preload busca el producto por ID y le "parcha" los datos del DTO
+    const product = await this.productRepository.preload({
+      id: id,
+      ...updateProductDto,
+    });
+
+    // 2. Si no encontró el ID, lanzamos error
+    if (!product) throw new NotFoundException(`Product with id ${id} not found`);
+
+    // 3. Guardamos (si hubo error de DB, el handleDBExceptions que creamos antes lo atrapa)
+    try {
+      return await this.productRepository.save(product);
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    const product = await this.findOne(id); // Reutilizamos la lógica del 404
+    await this.productRepository.remove(product);
+    return { message: 'Product deleted successfully' }; // O simplemente void
   }
 
   // Método privado para manejar errores de forma centralizada
