@@ -1,5 +1,16 @@
 # 🛍️ NestJS Professional Ecommerce API
 
+<p align="center">
+  <a href="https://ecommerce-api-b2cz.onrender.com/api/docs" target="blank">
+    <img src="https://img.shields.io/badge/LIVE_DEMO-Swagger_UI-green?style=for-the-badge&logo=swagger" alt="Live Demo" />
+  </a>
+  <a href="http://nestjs.com/" target="blank">
+    <img src="https://img.shields.io/badge/built_with-NestJS-red?style=for-the-badge&logo=nestjs" alt="NestJS" />
+  </a>
+</p>
+
+> 🚀 **API Desplegada y Funcional:** [Ver Documentación Swagger](https://ecommerce-api-b2cz.onrender.com/api/docs)
+
 > Una API RESTful escalable y modular construida con NestJS, PostgreSQL y TypeORM.
 > Este proyecto implementa patrones de diseño avanzados, seguridad robusta y documentación automatizada.
 
