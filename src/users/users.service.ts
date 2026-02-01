@@ -40,7 +40,7 @@ export class UsersService {
   async findOneByEmail(email: string) {
     return this.userRepository.findOne({
       where: { email },
-      select: { id: true, email: true, password: true, roles: true, fullname: true }, // Forzamos que traiga el password
+      select: { id: true, email: true, password: true, roles: true, fullname: true, isActive: true }, // Forzamos que traiga el password
       // O también podrías usar: 
       // select: ['id', 'password', 'email', 'roles', 'fullname']
     });

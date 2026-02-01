@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength, IsNumber, IsPositive, IsInt, IsOptional } from 'class-validator';
+import { IsString, MinLength, IsNumber, IsPositive, IsInt, IsOptional, IsArray } from 'class-validator';
 
 export class CreateProductDto {
 
@@ -36,4 +36,9 @@ export class CreateProductDto {
     @IsString()
     @IsOptional()
     description?: string;
+
+    @IsString({ each: true }) // Valida que cada item del array sea string
+    @IsArray()
+    @IsOptional()
+    images?: string[];
 }

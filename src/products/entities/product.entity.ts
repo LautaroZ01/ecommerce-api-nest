@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { ProductImage } from './product-image.entity';
 
 @Entity()
 export class Product {
@@ -37,6 +38,13 @@ export class Product {
     })
     @Column('int', { default: 0 })
     stock: number;
+
+    @OneToMany(
+        () => ProductImage,
+        (productImage) => productImage.product,
+        { cascade: true, eager: true } // <--- ¡OJO AQUÍ!
+    )
+    images?: ProductImage[];
 
     @ApiProperty({
         description: 'Product Creation Date',

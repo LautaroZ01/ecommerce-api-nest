@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -7,11 +7,16 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Product } from './entities/product.entity';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) { }
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly cloudinaryService: CloudinaryService
+  ) { }
 
   @Post()
   @Auth(ValidRoles.admin)
@@ -42,5 +47,14 @@ export class ProductsController {
   @Auth(ValidRoles.admin)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.productsService.remove(id);
+  }
+
+  @Post('upload')
+  @Auth(ValidRoles.admin) // Solo admins suben fotos
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadProductImage(
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.cloudinaryService.uploadImage(file);
   }
 }
