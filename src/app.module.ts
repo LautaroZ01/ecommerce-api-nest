@@ -22,6 +22,12 @@ import { MessagesWsModule } from './messages-ws/messages-ws.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      ssl: process.env.STAGE === 'prod', // Solo activar SSL en producción
+      extra: {
+        ssl: process.env.STAGE === 'prod'
+          ? { rejectUnauthorized: false }
+          : null,
+      },
       autoLoadEntities: true, // Carga las entidades automáticamente
       synchronize: true, // Solo para desarrollo (crea las tablas por ti)
     }),
