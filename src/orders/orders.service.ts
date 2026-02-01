@@ -8,6 +8,7 @@ import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { MessagesWsGateway } from 'src/messages-ws/messages-ws.gateway';
 
 @Injectable()
 export class OrdersService {
@@ -19,6 +20,9 @@ export class OrdersService {
 
     // Inyectamos DataSource para manejar transacciones
     private readonly dataSource: DataSource,
+
+    // Inyección del Gateway
+    private readonly messagesWsGateway: MessagesWsGateway,
   ) { }
 
   async create(createOrderDto: CreateOrderDto, user: User) {
@@ -32,6 +36,9 @@ export class OrdersService {
     try {
       let totalAmount = 0;
       const orderItems: OrderItem[] = [];
+
+      // Array auxiliar para guardar qué productos cambiaron
+      const productsToNotify: { id: string, stock: number }[] = [];
 
       // 2. Iterar sobre los items solicitados
       for (const item of items) {
@@ -53,6 +60,9 @@ export class OrdersService {
 
         // 5. Guardar el producto actualizado (dentro de la transacción)
         await queryRunner.manager.save(product);
+
+        // Guardamos en nuestro array temporal
+        productsToNotify.push({ id: product.id, stock: product.stock });
 
         // 6. Crear la instancia de OrderItem (sin guardar aún)
         const orderItem = queryRunner.manager.create(OrderItem, {
@@ -77,6 +87,14 @@ export class OrdersService {
 
       // 9. ¡ÉXITO! Confirmamos cambios
       await queryRunner.commitTransaction();
+
+      // 🔔 AHORA SÍ: Emitimos a todos los clientes
+      productsToNotify.forEach(p => {
+        this.messagesWsGateway.server.emit('stock-update', {
+          productId: p.id,
+          newStock: p.stock
+        });
+      });
 
       return {
         orderId: order.id,
